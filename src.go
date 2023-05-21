@@ -1,8 +1,6 @@
-package main
+package gochat
 
 import (
-	"fmt"
-
 	"github.com/esgj/gochat/engine"
 	"github.com/esgj/gochat/model"
 )
@@ -40,12 +38,4 @@ var TestClasses []model.IntentClass = []model.IntentClass{
 		Intent: "weather",
 		Words: []string{"weather", "how is the weather", "what is the weather like", "weather tomorrow", "weather today"},
 	},
-}
-
-// Example to setup gochat response.
-func main() {
-	goChat := Default(TestIntents, TestClasses)
-
-	fmt.Println(goChat.GetResponse("hello"))
-	fmt.Println(goChat.GetResponse("weather"))
 }
