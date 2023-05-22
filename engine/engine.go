@@ -70,8 +70,8 @@ func (e *Engine) calcResult(message string) (string, error) {
 	for _, keyword := range e.currentIntent.Match {
 		if utils.CompareTwoStrings(keyword, message) >= 0.5 {
 			rand.Seed(time.Now().Unix())
-			randIndex := rand.Intn(len(e.currentIntent.Respones))
-			result = e.currentIntent.Respones[randIndex]
+			randIndex := rand.Intn(len(e.currentIntent.Responses))
+			result = e.currentIntent.Responses[randIndex]
 			break
 		}
 	}

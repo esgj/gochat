@@ -3,7 +3,7 @@ package model
 type Intent struct {
 	Name     string   `json:"name"`
 	Match    []string `json:"match"`
-	Respones []string `json:"responses"`
+	Responses []string `json:"responses"`
 	Fallback []string `json:"fallback"`
 }
 
