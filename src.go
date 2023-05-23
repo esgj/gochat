@@ -5,37 +5,42 @@ import (
 	"github.com/esgj/gochat/model"
 )
 
-func Default(intents []model.Intent, classes []model.IntentClass) *engine.Engine {
+func Default(intents []model.Intent) *engine.Engine {
 	engine := engine.Engine{
-		Classes: classes,
 		Intents: intents,
 	}
+
+	// Iterates over intent classes and adds them to the bayesian classifier.
+	engine.Setup()
+	// Takes all intents and runs it through the bayesian algorithm.
+	engine.Learn()
 
 	return &engine
 }
 
 var TestIntents []model.Intent = []model.Intent{
 	{
-		Name: "greeting",
-		Match: []string{"hi", "hello"},
+		Class: "greeting",
+		Words: []string{"hi", "hello"},
 		Responses: []string{"Hello there!", "Hi, how are you?"},
 		Fallback: []string{"I can't answer your question at this time."},
 	},
 	{
-		Name: "weather",
-		Match: []string{"weather", "how is the weather", "what is the weather like", "weather tomorrow", "weather today"},
-		Responses: []string{"I cannot check that right now!", "I'm not sure, sorry."},
+		Class: "weather",
+		Words: []string{"weather", "now"},
+		Responses: []string{"I'm not sure how the weather is right now", "I'm not sure about the weather, sorry."},
 		Fallback: []string{"I cannot answer that question right now"},
 	},
-}
-
-var TestClasses []model.IntentClass = []model.IntentClass{
 	{
-		Intent: "greeting",
-		Words: []string{"hi", "hello"},
+		Class: "joke",
+		Words: []string{"joke", "joke?"},
+		Responses: []string{"I do not have any jokes at this moment, sorry!"},
+		Fallback: []string{"I cannot answer that question right now"},
 	},
 	{
-		Intent: "weather",
-		Words: []string{"weather", "how is the weather", "what is the weather like", "weather tomorrow", "weather today"},
+		Class: "joke-tomorrow",
+		Words: []string{"joke", "tomorrow", "please"},
+		Responses: []string{"I do not have any jokes at this moment, sorry!"},
+		Fallback: []string{"I cannot answer that question right now"},
 	},
 }

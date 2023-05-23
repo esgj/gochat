@@ -1,84 +1,82 @@
 package engine
 
 import (
-	"errors"
+	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/esgj/gochat/model"
 	"github.com/esgj/gochat/utils"
+	"github.com/jbrukh/bayesian"
 )
 
 type Engine struct {
-	Classes       []model.IntentClass
 	Intents       []model.Intent
 	currentIntent model.Intent
-	currentClass  model.IntentClass
+	classifier *bayesian.Classifier
 }
 
 func (e *Engine) GetResponse(message string) string {
-	if (e.currentIntent.Name == model.Intent{}.Name) {
-		e.currentIntent = getIntent(e.Classes[0], e.Intents)
+	e.calcNewIntent(message);
+	rand.Seed(time.Now().Unix())
+
+	if score := e.getScoreByCurrentIntent(message); score > 0.5 {
+		randIndex := rand.Intn(len(e.currentIntent.Responses))
+		return e.currentIntent.Responses[randIndex]
 	}
 
-	var result string
-
-	for i := 0; i < 2; i++ {
-		if res, err := e.calcResult(message); err != nil {
-
-			if intentClass := matchNewIntentClass(message, e.Classes); (intentClass.Intent != model.IntentClass{}.Intent && e.currentClass.Intent != intentClass.Intent) {
-				e.currentClass = intentClass
-				e.currentIntent = getIntent(e.currentClass, e.Intents)
-				continue
-			} else {
-				rand.Seed(time.Now().Unix())
-				randIndex := rand.Intn(len(e.currentIntent.Fallback))
-				result = e.currentIntent.Fallback[randIndex]
-			}
-		} else {
-			result = res
-		}
-	}
-
-	return result
+	return e.currentIntent.Fallback[rand.Intn(len(e.currentIntent.Fallback))]
 }
 
-func getIntent(class model.IntentClass, intents []model.Intent) model.Intent {
-	for _, intent := range intents {
-		if intent.Name == class.Intent {
-			return intent
-		}
-	}
+func (e *Engine) calcNewIntent(message string) {
+	// using the bayesian classifier to get likely intent
+	_, likelyIntentIndex, _ := e.classifier.LogScores(strings.Split(getParsedMessage(message), " "))
 
-	return intents[0]
+	if (likelyIntentIndex >= 0 && likelyIntentIndex < len(e.Intents)) {
+		e.currentIntent = e.Intents[likelyIntentIndex]
+	}
 }
 
-func matchNewIntentClass(word string, classes []model.IntentClass) model.IntentClass {
-	for index, class := range classes {
-		for _, classWord := range classes[index].Words {
-			if utils.CompareTwoStrings(classWord, word) > 0.5 {
-				return class
+func (e *Engine) getScoreByCurrentIntent(message string) float32 {
+	var sum float32
+
+	words := strings.Split(getParsedMessage(message), " ")
+
+	for _, word := range e.currentIntent.Words {
+		for _, givenWord := range words {
+			if score := utils.CompareTwoStrings(word, givenWord); score > 0.5 {
+				sum += score
 			}
 		}
 	}
 
-	return model.IntentClass{}
+	fmt.Println("Intent: ", e.currentIntent.Class)
+	fmt.Println("Score: ", sum)
+
+	return sum
 }
 
-func (e *Engine) calcResult(message string) (string, error) {
-	var result string
-	for _, keyword := range e.currentIntent.Match {
-		if utils.CompareTwoStrings(keyword, message) >= 0.5 {
-			rand.Seed(time.Now().Unix())
-			randIndex := rand.Intn(len(e.currentIntent.Responses))
-			result = e.currentIntent.Responses[randIndex]
-			break
-		}
+func (e *Engine) Setup() {
+	var classes []bayesian.Class
+
+	for _, intent := range e.Intents {
+		classes = append(classes, intent.Class)
 	}
 
-	if result == "" {
-		return "", errors.New("No match")
-	}
+	e.classifier = bayesian.NewClassifier(classes...)
+}
 
-	return result, nil
+func (e *Engine) Learn() {
+	for _, intent := range e.Intents {
+		e.classifier.Learn(intent.Words, intent.Class)
+	}
+}
+
+func getParsedMessage(message string) string {
+	p := strings.ReplaceAll(message, ",", "")
+	p = strings.ReplaceAll(p, "?", "")
+	p = strings.ToLower(p)
+
+	return p
 }

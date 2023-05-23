@@ -1,13 +1,10 @@
 package model
 
-type Intent struct {
-	Name     string   `json:"name"`
-	Match    []string `json:"match"`
-	Responses []string `json:"responses"`
-	Fallback []string `json:"fallback"`
-}
+import "github.com/jbrukh/bayesian"
 
-type IntentClass struct {
-	Intent string   `json:"intent"`
-	Words  []string `json:"words"`
+type Intent struct {
+	Class     bayesian.Class `json:"class"`
+	Words     []string       `json:"words"`
+	Responses []string       `json:"responses"`
+	Fallback  []string       `json:"fallback"`
 }
