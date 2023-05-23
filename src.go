@@ -27,19 +27,13 @@ var TestIntents []model.Intent = []model.Intent{
 	},
 	{
 		Class: "weather",
-		Words: []string{"weather", "now"},
+		Words: []string{"weather"},
 		Responses: []string{"I'm not sure how the weather is right now", "I'm not sure about the weather, sorry."},
 		Fallback: []string{"I cannot answer that question right now"},
 	},
 	{
 		Class: "joke",
-		Words: []string{"joke", "joke?"},
-		Responses: []string{"I do not have any jokes at this moment, sorry!"},
-		Fallback: []string{"I cannot answer that question right now"},
-	},
-	{
-		Class: "joke-tomorrow",
-		Words: []string{"joke", "tomorrow", "please"},
+		Words: []string{"joke"},
 		Responses: []string{"I do not have any jokes at this moment, sorry!"},
 		Fallback: []string{"I cannot answer that question right now"},
 	},
